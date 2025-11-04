@@ -1,0 +1,31 @@
+name: Build, Modify, and Commit Docker Image
+
+on:
+  workflow_dispatch:  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: docker build -t my-flask-app:latest .
+
+      - name: Run container in detached mode
+        run: docker run -d -p 80:80 --name my-running-app my-flask-app:latest
+
+      - name: Modify application file inside container
+        run: |
+          docker exec my-running-app bash -c "echo '<h1>Modified Version!</h1>' > /app/templates/index.html"
+
+      - name: Commit modified container as new image
+        run: |
+          docker commit my-running-app my-flask-app:modified
+
+      - name: List Docker images
+        run: docker images
